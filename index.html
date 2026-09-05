@@ -1,1 +1,54 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Learning Theory & Visualizations</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Sukhumvit Set', 'Kanit', sans-serif; }
+        body { background-color: #f4f7f6; color: #333; margin: 0; padding: 40px 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h1 { color: #1a365d; text-align: center; margin-bottom: 10px; }
+        p.subtitle { text-align: center; color: #666; margin-bottom: 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 25px; text-align: center; transition: all 0.3s ease; background: #fff; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: #3182ce; }
+        .card h3 { color: #2b6cb0; margin-top: 0; }
+        .card p { color: #4a5568; font-size: 0.95rem; margin-bottom: 20px; }
+        .btn { display: inline-block; padding: 10px 20px; background-color: #3182ce; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; transition: background 0.2s; }
+        .btn:hover { background-color: #2b6cb0; }
+        .footer { margin-top: 40px; text-align: center; font-size: 0.9rem; color: #718096; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Theoretical-based Examination</h1>
+        <p class="subtitle">Machine Learning Visualization Hub (KNN, KNN Regression, K-Means)</p>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>1. KNN Classification</h3>
+                <p>เรียนรู้การจำแนกประเภทข้อมูลโดยการหาเพื่อนบ้านที่ใกล้ที่สุด $k$ อันดับแรก พร้อมปรับเปลี่ยนจุดทดสอบและดูการโหวตได้แบบ Interactive</p>
+                <a href="knn_classification.html" class="btn">เปิดดู Visualization</a>
+            </div>
+            
+            <div class="card">
+                <h3>2. KNN Regression</h3>
+                <p>ทำความเข้าใจการพยากรณ์ค่าต่อเนื่อง (เช่น ราคาปิดหุ้น) จากการทำ Sliding Window และการหาค่าเฉลี่ยของเพื่อนบ้าน $k$ จุด</p>
+                <a href="knn_regression.html" class="btn">เปิดดู Visualization</a>
+            </div>
+            
+            <div class="card">
+                <h3>3. K-Means Clustering</h3>
+                <p>จำลองขั้นตอนการจัดกลุ่มข้อมูลแบบ Unsupervised Learning ดูการขยับของจุด Centroid ในแต่ละ Iteration</p>
+                <a href="kmeans_clustering.html" class="btn">เปิดดู Visualization</a>
+            </div>
+        </div>
 
+        <div class="footer">
+            <p><strong>โปรเจกต์กลุ่มวิชา Machine Learning Theory</strong></p>
+            <p>เอกสารสรุปฉบับเต็มฉบับ PDF พร้อมรายชื่อสมาชิกกลุ่ม สามารถดูได้ในโฟลเดอร์ <code>report/</code></p>
+        </div>
+    </div>
+</body>
+</html>
