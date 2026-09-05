@@ -1,1 +1,111 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>KNN Regression Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .controls { margin-bottom: 20px; padding: 15px; background: #edf2f7; border-radius: 6px; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #3182ce; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← กลับหน้าหลัก</a>
+        <h2>2. KNN Regression (Stock Price Prediction Simulation)</h2>
+        <p>จำลองการทำนายราคาปิดหุ้นด้วย KNN Regression โดยคำนวณค่าเฉลี่ยราคาปิดย้อนหลังจากเพื่อนบ้าน $K$ จุดที่ใกล้เคียงที่สุด</p>
 
+        <div class="controls">
+            <label for="kVal">เลือกค่า K (จำนวนเพื่อนบ้าน): </label>
+            <select id="kVal" onchange="runRegression()">
+                <option value="1">K = 1</option>
+                <option value="3" selected>K = 3</option>
+                <option value="5">K = 5</option>
+            </select>
+        </div>
+
+        <div id="chart" style="width:100%;height:500px;"></div>
+    </div>
+
+    <script>
+        // Sample Stock Price Series (Actual Close Prices)
+        const closePrices = [183, 184, 185, 186, 187, 188, 189, 190, 188, 187, 189, 192, 195, 194, 196, 198, 200, 199, 202, 205];
+        const windowSize = 5;
+
+        function runRegression() {
+            const k = parseInt(document.getElementById('kVal').value);
+            
+            // Build Sliding Window Dataset
+            let dataset = [];
+            for(let i = 0; i < closePrices.length - windowSize; i++) {
+                let feat = closePrices.slice(i, i + windowSize);
+                let target = closePrices[i + windowSize];
+                dataset.append ? dataset.append({feat, target, index: i + windowSize}) : dataset.push({feat, target, index: i + windowSize});
+            }
+
+            // Split Train (first 70%) and Test (last 30%)
+            const splitIdx = Math.floor(dataset.length * 0.7);
+            const trainSet = dataset.slice(0, splitIdx);
+            const testSet = dataset.slice(splitIdx);
+
+            // KNN Regression Predict for Test Set
+            let predictions = [];
+            let testDays = [];
+            let actualPrices = [];
+
+            testSet.forEach(testItem => {
+                // Calculate Distances to all Train items
+                let dists = trainSet.map(trainItem => {
+                    let d = 0;
+                    for(let j=0; j<windowSize; j++) {
+                        d += Math.pow(testItem.feat[j] - trainItem.feat[j], 2);
+                    }
+                    return { target: trainItem.target, dist: Math.sqrt(d) };
+                });
+
+                dists.sort((a,b) => a.dist - b.dist);
+                let neighbors = dists.slice(0, k);
+                let avgPred = neighbors.reduce((acc, curr) => acc + curr.target, 0) / k;
+
+                predictions.push(avgPred);
+                testDays.push(testItem.index + 1);
+                actualPrices.push(testItem.target);
+            });
+
+            const trainDays = Array.from({length: splitIdx + windowSize}, (_, i) => i + 1);
+            const trainPrices = closePrices.slice(0, splitIdx + windowSize);
+
+            // Traces
+            const traceTrain = {
+                x: trainDays, y: trainPrices,
+                mode: 'lines+markers', name: 'Train Close Price',
+                line: { color: 'blue' }
+            };
+
+            const traceActual = {
+                x: testDays, y: actualPrices,
+                mode: 'lines+markers', name: 'Actual Close Price',
+                line: { color: 'green', width: 2 }
+            };
+
+            const tracePred = {
+                x: testDays, y: predictions,
+                mode: 'lines+markers', name: `Predicted Close (K=${k})`,
+                line: { color: 'red', dash: 'dash', width: 2 }
+            };
+
+            const layout = {
+                title: `ผลการพยากรณ์ราคาปิดหุ้นด้วย KNN Regression (K=${k})`,
+                xaxis: { title: 'Trading Day' },
+                yaxis: { title: 'Close Price (USD)' }
+            };
+
+            Plotly.newPlot('chart', [traceTrain, traceActual, tracePred], layout);
+        }
+
+        runRegression();
+    </script>
+</body>
+</html>
