@@ -1,1 +1,129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>KNN Classification Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .controls { margin-bottom: 20px; padding: 15px; background: #edf2f7; border-radius: 6px; display: flex; gap: 20px; align-items: center; }
+        label { font-weight: bold; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #3182ce; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← กลับหน้าหลัก</a>
+        <h2>1. K-Nearest Neighbors (KNN) Classification</h2>
+        <p>คลิกที่จุดในกราฟเพื่อเปลี่ยนพิกัดของ <strong>Test Point (จุดทดสอบ)</strong> หรือปรับค่า <strong>K</strong> เพื่อดูการโหวตเลือกคลาส</p>
+        
+        <div class="controls">
+            <div>
+                <label for="kVal">ค่า K (จำนวนเพื่อนบ้าน): </label>
+                <input type="number" id="kVal" value="3" min="1" max="9" onchange="updatePlot()">
+            </div>
+            <div>
+                <label>พิกัดจุดทดสอบ: </label>
+                X: <input type="number" id="testX" value="3" step="0.5" onchange="updatePlot()" style="width:60px;">
+                Y: <input type="number" id="testY" value="3" step="0.5" onchange="updatePlot()" style="width:60px;">
+            </div>
+        </div>
 
+        <div id="chart" style="width:100%;height:500px;"></div>
+        <div id="result" style="margin-top:15px; padding:15px; background:#e6fffa; border-radius:6px; font-size:1.1rem;"></div>
+    </div>
+
+    <script>
+        const trainData = [
+            {x: 1, y: 2, label: 'Class Red (สีแดง)'},
+            {x: 2, y: 3, label: 'Class Red (สีแดง)'},
+            {x: 2, y: 1, label: 'Class Red (สีแดง)'},
+            {x: 5, y: 4, label: 'Class Blue (สีน้ำเงิน)'},
+            {x: 6, y: 5, label: 'Class Blue (สีน้ำเงิน)'},
+            {x: 5, y: 6, label: 'Class Blue (สีน้ำเงิน)'}
+        ];
+
+        function updatePlot() {
+            const k = parseInt(document.getElementById('kVal').value);
+            const tx = parseFloat(document.getElementById('testX').value);
+            const ty = parseFloat(document.getElementById('testY').value);
+
+            // Calculate Euclidean Distances
+            const distances = trainData.map(pt => {
+                const dist = Math.sqrt(Math.pow(pt.x - tx, 2) + Math.pow(pt.y - ty, 2));
+                return { ...pt, dist };
+            });
+
+            distances.sort((a, b) => a.dist - b.dist);
+            const kNeighbors = distances.slice(0, k);
+
+            // Vote Count
+            let redVotes = 0, blueVotes = 0;
+            kNeighbors.forEach(n => {
+                if(n.label.includes('Red')) redVotes++;
+                else blueVotes++;
+            });
+            const predictedClass = redVotes > blueVotes ? 'Class Red (สีแดง)' : 'Class Blue (สีน้ำเงิน)';
+
+            // Plotly Traces
+            const redPts = trainData.filter(d => d.label.includes('Red'));
+            const bluePts = trainData.filter(d => d.label.includes('Blue'));
+
+            const traceRed = {
+                x: redPts.map(d => d.x), y: redPts.map(d => d.y),
+                mode: 'markers', name: 'Class Red',
+                marker: { color: 'red', size: 12 }
+            };
+
+            const traceBlue = {
+                x: bluePts.map(d => d.x), y: bluePts.map(d => d.y),
+                mode: 'markers', name: 'Class Blue',
+                marker: { color: 'blue', size: 12 }
+            };
+
+            const traceTest = {
+                x: [tx], y: [ty],
+                mode: 'markers', name: 'Test Point',
+                marker: { color: 'green', size: 16, symbol: 'diamond' }
+            };
+
+            // Draw lines to K-Neighbors
+            const lines = [];
+            kNeighbors.forEach(n => {
+                lines.push({
+                    type: 'line',
+                    x0: tx, y0: ty, x1: n.x, y1: n.y,
+                    line: { color: 'gray', width: 2, dash: 'dot' }
+                });
+            });
+
+            const maxRadius = kNeighbors[k-1].dist;
+            const circle = {
+                type: 'circle',
+                xref: 'x', yref: 'y',
+                x0: tx - maxRadius, y0: ty - maxRadius,
+                x1: tx + maxRadius, y1: ty + maxRadius,
+                line: { color: 'green', width: 1, dash: 'dash' }
+            };
+
+            const layout = {
+                title: `ผลการจัดคลาสด้วย KNN (k=${k})`,
+                xaxis: { range: [0, 8], title: 'Feature X1' },
+                yaxis: { range: [0, 8], title: 'Feature X2' },
+                shapes: [...lines, circle]
+            };
+
+            Plotly.newPlot('chart', [traceRed, traceBlue, traceTest], layout);
+
+            document.getElementById('result').innerHTML = `
+                <strong>ผลการทำนาย:</strong> จุดทดสอบ ($X_1=${tx}, X_2=${ty}$) ถูกจัดให้อยู่ใน 
+                <span style="color:${predictedClass.includes('Red')?'red':'blue'}; font-weight:bold;">${predictedClass}</span> 
+                <br>(คะแนนโหวตจาก $K=${k}$: สีแดง ${redVotes} เสียง, สีน้ำเงิน ${blueVotes} เสียง)
+            `;
+        }
+
+        updatePlot();
+    </script>
+</body>
+</html>
